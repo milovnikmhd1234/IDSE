@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Synergy OCC v20.0 Obsidian</title>
+    <style>
+        :root {
+            /* Industrial UI Specs */
+            --syn-blue: #004b93;
+            --syn-blue-dark: #002d5a;
+            --syn-orange: #f39200;
+            --syn-green: #28a745;
+            --syn-red: #dc3545;
+            --syn-black: #020202;
+            --syn-grey: #1a1c20;
+            --gold: #ffcc00;
+            --crt-green: #00ff41;
+            --white: #ffffff;
+            --bsod: #0000aa;
+            --font-mono: 'Consolas', 'Courier New', monospace;
+            --font-ui: 'Inter', 'Segoe UI', Tahoma, sans-serif;
+        }
+
+        /* RESET & BASE */
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; user-select: none; }
+        body { background: #000; height: 100vh; width: 100vw; display: flex; overflow: hidden; font-family: var(--font-ui); color: var(--white); cursor: none; }
+
+        /* PHYSICAL HARDWARE CONTAINER */
+        #chassis {
+            width: 100%; height: 100%; background: #111; position: relative;
+            border: 8px solid #222; display: flex; flex-direction: column;
+            box-shadow: inset 0 0 100px #000;
+        }
+
+        /* VIEWPORT */
+        #viewport { flex: 1; margin: 2px; background: #000; position: relative; overflow: hidden; border: 1px solid #333; }
+
+        /* CRT EFFECTS */
+        #viewport::before {
+            content: ""; position: absolute; top:0; left:0; width:100%; height:100%;
+            background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.15) 50%), 
+                        linear-gradient(90deg, rgba(255,0,0,0.02), rgba(0,255,0,0.01), rgba(0,0,255,0.02));
+            background-size: 100% 2px, 2px 100%; z-index: 50000; pointer-events: none;
+        }
+
+        /* LAYERS */
+        .layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; }
+
+        /* 1. BOOT LAYER (180 SECONDS) */
+        #layer-boot { background: #000; z-index: 100000; padding: 25px; color: var(--crt-green); font-family: var(--font-mono); font-size: 10px; line-height: 1.1; overflow: hidden; }
+        .boot-title { font-size: 14px; border-bottom: 1px solid var(--crt-green); padding-bottom: 5px; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        #boot-log { flex: 1; overflow-y: hidden; }
+        .boot-progress-bar { height: 10px; border: 1px solid var(--crt-green); margin-top: 10px; padding: 1px; }
+        #boot-fill { height: 100%; background: var(--crt-green); width: 0%; }
+
+        /* 2. CRASH LAYERS */
+        #layer-bsod { background: var(--bsod); z-index: 200000; padding: 60px; color: #fff; font-family: var(--font-mono); }
+        #layer-freeze { background: transparent; z-index: 250000; cursor: wait; } /* Invisible blocker for silent crash */
+        
+        /* Error Dialogs */
+        .sys-dialog {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 400px; background: #eee; color: #000; border: 2px solid #555;
+            box-shadow: 10px 10px 0 rgba(0,0,0,0.5); z-index: 300000; padding: 20px; display: none;
+        }
+        .sys-dialog h3 { background: var(--syn-blue); color: #fff; margin: -20px -20px 15px -20px; padding: 5px 10px; font-size: 14px; }
+        .sys-dialog p { font-size: 13px; margin-bottom: 20px; font-weight: bold; }
+        .sys-dialog button { float: right; padding: 5px 15px; background: #ccc; border: 1px solid #777; cursor: pointer; }
+
+        /* 3. LOGIN LAYER */
+        #layer-login { background: radial-gradient(circle, #1a1c20 0%, #000 100%); z-index: 50000; align-items: center; justify-content: center; }
+        .login-box { width: 300px; background: #222; padding: 30px; border: 1px solid #444; }
+        .login-display { height: 50px; background: #000; color: var(--gold); border: 2px solid #555; text-align: center; line-height: 50px; font-size: 28px; font-family: var(--font-mono); margin-bottom: 20px; }
+
+        /* 4. MAIN APP LAYER */
+        #layer-app { background: var(--syn-black); z-index: 10000; }
+        .top-bar { height: 35px; background: #000; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; padding: 0 10px; font-size: 12px; font-family: var(--font-mono); }
+        
+        .main-container { flex: 1; display: grid; grid-template-columns: 1fr 100px; gap: 1px; background: #333; overflow: hidden; }
+        
+        /* ITINERARY */
+        .iti-view { background: #fff; color: #000; overflow-y: auto; position: relative; }
+        .iti-row { display: grid; grid-template-columns: 50px 30px 1fr 50px; padding: 12px 10px; border-bottom: 1px solid #eee; font-size: 14px; align-items: center; }
+        .iti-row.active { background: var(--syn-orange); color: #fff; font-weight: bold; border-left: 8px solid var(--syn-blue); }
+        .iti-row.passed { background: #f9f9f9; color: #ccc; }
+
+        /* SLIM NUMPAD */
+        .numpad { background: #0a0a0a; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; }
+        .k { background: #1c2530; color: #fff; border: none; font-size: 18px; font-weight: bold; height: 50px; display: flex; align-items: center; justify-content: center; }
+        .k:active { background: var(--syn-blue); }
+        .k.orange { background: var(--syn-orange); }
+        .k.green { background: var(--syn-green); }
+        .k.wide { grid-column: span 2; }
+        .k.tall { grid-row: span 2; height: 101px; }
+        .k.small { font-size: 9px; color: #555; }
+
+        /* TICKETS FOOTER */
+        .ticket-footer { height: 110px; background: #000; display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; padding: 2px; }
+        .t-btn { background: var(--syn-blue-dark); color: #fff; border: none; font-size: 9px; font-weight: bold; text-transform: uppercase; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .t-btn.active { background: var(--gold); color: #000; }
+        .t-btn.sys { background: #222; color: var(--gold); }
+        .t-btn span { font-size: 12px; margin-top: 2px; }
+
+        /* PRICE DISPLAY */
+        .price-tag { position: absolute; bottom: 115px; right: 110px; background: rgba(0,0,0,0.8); color: var(--syn-red); padding: 5px 15px; border: 2px solid var(--syn-red); font-size: 30px; font-weight: 900; font-family: var(--font-mono); z-index: 1000; pointer-events: none; }
+
+        /* MUSHROOM BUTTON */
+        #mush { position: absolute; bottom: 20px; left: 20px; width: 60px; height: 60px; background: #333; border: 4px solid #444; border-radius: 50%; z-index: 1000000; display: flex; align-items: center; justify-content: center; font-size: 25px; cursor: pointer; box-shadow: 0 5px 15px #000; }
+        #mush:active { transform: scale(0.95); background: #111; }
+
+        /* MENU LAYER */
+        #layer-menu { background: var(--syn-grey); z-index: 60000; padding: 20px; }
+        .menu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+        .m-box { background: #000; border: 1px solid #444; padding: 10px; cursor: pointer; }
+        .m-box.active { border-color: var(--gold); background: #111; }
+        .m-box label { font-size: 9px; color: #777; display: block; }
+        .m-box b { color: var(--gold); font-size: 16px; font-family: var(--font-mono); }
+        
+        .editor { flex: 1; background: #000; border: 1px solid #333; overflow-y: auto; margin-bottom: 15px; padding: 10px; }
+        .edit-stop-row { display: grid; grid-template-columns: 1fr 70px 40px; gap: 5px; margin-bottom: 5px; }
+        .edit-stop-row input { background: #222; border: 1px solid #444; color: #fff; padding: 5px; font-size: 12px; }
+
+    </style>
+</head>
+<body>
+
+<div id="chassis">
+    <div id="mush" onclick="Core.power()">🍄</div>
+
+    <div id="viewport">
+
+        <div id="layer-boot" class="layer">
+            <div class="boot-title">
+                <span>SYNERGY BIOS v20.0.0.42</span>
+                <span id="boot-clock">00:00</span>
+            </div>
+            <div id="boot-log"></div>
+            <div class="boot-progress-bar"><div id="boot-fill"></div></div>
+        </div>
+
+        <div id="layer-bsod" class="layer">
+            <h1 style="font-size: 100px; margin-bottom: 20px;">:(</h1>
+            <p style="font-size: 20px; line-height: 1.5;">V počítači došlo k problému a je třeba jej restartovat. Právě shromažďujeme určité informace o chybách a následně provedeme restart.</p>
+            <p style="margin-top: 40px;">0% dokončeno</p>
+            <div style="margin-top: 100px; font-size: 12px; opacity: 0.8;">
+                Kód zastavení: SYNERGY_KERNEL_PANIC_INVALID_SECTOR<br>
+                Co selhalo: syn_drv_64.sys
+            </div>
+        </div>
+
+        <div id="layer-freeze" class="layer"></div>
+
+        <div id="dlg-thermal" class="sys-dialog">
+            <h3>SYNERGY SYSTEM MONITOR</h3>
+            <p>CRITICAL ERROR: System temperature is too high (98°C). The device will shut down to prevent hardware damage.</p>
+            <button onclick="location.reload()">RESTART</button>
+        </div>
+
+        <div id="dlg-storage" class="sys-dialog">
+            <h3>FILE SYSTEM ERROR</h3>
+            <p>WARNING: Low storage space. Transaction logs cannot be written. Please contact technical support.</p>
+            <button onclick="document.getElementById('dlg-storage').style.display='none'">CLOSE</button>
+        </div>
+
+        <div id="layer-login" class="layer">
+            <div class="login-box">
+                <div style="font-size: 10px; color: #888; margin-bottom: 5px; text-transform: uppercase;">ID Řidiče</div>
+                <div class="login-display" id="log-lcd">ID?</div>
+                <div class="numpad" style="background:transparent">
+                    <button class="k" onclick="UI.inLog(1)">1</button><button class="k" onclick="UI.inLog(2)">2</button><button class="k" onclick="UI.inLog(3)">3</button>
+                    <button class="k" onclick="UI.inLog(4)">4</button><button class="k" onclick="UI.inLog(5)">5</button><button class="k" onclick="UI.inLog(6)">6</button>
+                    <button class="k" onclick="UI.inLog(7)">7</button><button class="k" onclick="UI.inLog(8)">8</button><button class="k" onclick="UI.inLog(9)">9</button>
+                    <button class="k small" onclick="UI.clearLog()">CLR</button><button class="k" onclick="UI.inLog(0)">0</button><button class="k green" onclick="UI.submitLog()">OK</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="layer-app" class="layer">
+            <div class="top-bar">
+                <div><span id="st-ids">790968 / 2</span> <span id="st-kurz" style="color:var(--gold); margin-left:10px;">K: 101</span></div>
+                <div style="display:flex; gap:15px; align-items:center;">
+                    <div id="st-delay" style="background:#222; padding:2px 8px; border-radius:3px;">+0 m</div>
+                    <span id="st-clock">00:00:00</span>
+                    <div style="width:10px; height:10px; border-radius:50%; background:var(--syn-green);"></div>
+                </div>
+            </div>
+
+            <div class="main-container">
+                <div class="iti-view" id="iti-box"></div>
+                <div class="numpad">
+                    <button class="k small" onclick="Core.triggerError('thermal')">ZÓN</button>
+                    <button class="k" onclick="UI.inApp(7)">7</button><button class="k" onclick="UI.inApp(8)">8</button><button class="k" onclick="UI.inApp(9)">9</button>
+                    <button class="k small" onclick="Core.triggerError('storage')">TAR</button>
+                    <button class="k" onclick="UI.inApp(4)">4</button><button class="k" onclick="UI.inApp(5)">5</button><button class="k" onclick="UI.inApp(6)">6</button>
+                    <button class="k small" onclick="Core.triggerError('freeze')">KAR</button>
+                    <button class="k" onclick="UI.inApp(1)">1</button><button class="k" onclick="UI.inApp(2)">2</button><button class="k" onclick="UI.inApp(3)">3</button>
+                    <button class="k small">STO</button><button class="k" onclick="UI.inApp(0)">0</button><button class="k orange tall" onclick="UI.next()">DALŠÍ</button>
+                    <button class="k green wide" onclick="UI.pay()">OK</button>
+                </div>
+            </div>
+
+            <div class="price-tag" id="price-val">11,00 Kč</div>
+
+            <div class="ticket-footer">
+                <button class="t-btn sys" onclick="UI.openMenu()">MENU</button>
+                <button class="t-btn active" onclick="UI.setPrice(this, 11)">Obyčejné<span>11,-</span></button>
+                <button class="t-btn" onclick="UI.setPrice(this, 5)">Dítě<span>5,-</span></button>
+                <button class="t-btn" onclick="UI.setPrice(this, 8)">Student<span>8,-</span></button>
+                <button class="t-btn" onclick="UI.setPrice(this, 8)">Senior<span>8,-</span></button>
+                <button class="t-btn" onclick="UI.setPrice(this, 0)">ZTP<span>0,-</span></button>
+                <button class="t-btn" onclick="UI.setPrice(this, 7)">Pes<span>7,-</span></button>
+                <button class="t-btn" onclick="UI.setPrice(this, 0)">Zavaz<span>0,-</span></button>
+                <button class="t-btn sys" onclick="Core.triggerError('bsod')">DIAG</button>
+                <button class="t-btn sys" style="background:var(--syn-red)" onclick="location.reload()">OFF</button>
+            </div>
+        </div>
+
+        <div id="layer-menu" class="layer">
+            <h2 style="color:var(--gold); margin-bottom:15px; text-align:center;">SYNERGY CONFIG</h2>
+            <div class="menu-grid">
+                <div class="m-box active" id="mb-line" onclick="UI.setMTarget('line')"><label>LINKA</label><b id="v-line">790968</b></div>
+                <div class="m-box" id="mb-spoj" onclick="UI.setMTarget('spoj')"><label>SPOJ</label><b id="v-spoj">2</b></div>
+                <div class="m-box" id="mb-kurz" onclick="UI.setMTarget('kurz')"><label>KURZ</label><b id="v-kurz">101</b></div>
+            </div>
+            <div class="m-box" style="margin-bottom:10px;"><label>DOPRAVCE</label><input type="text" id="v-carrier" value="Arriva Morava" style="background:none; border:none; color:#fff; width:100%; font-size:16px;"></div>
+            <div class="editor" id="edit-box"></div>
+            <button onclick="UI.addS()" style="width:100%; padding:10px; background:var(--syn-green); border:none; color:#fff; font-weight:bold; margin-bottom:10px;">+ PŘIDAT ZASTÁVKU</button>
+            
+            <div style="display:flex; gap:10px;">
+                <div class="numpad" style="width:200px;">
+                    <button class="k" onclick="UI.inMenu(7)">7</button><button class="k" onclick="UI.inMenu(8)">8</button><button class="k" onclick="UI.inMenu(9)">9</button>
+                    <button class="k" onclick="UI.inMenu(4)">4</button><button class="k" onclick="UI.inMenu(5)">5</button><button class="k" onclick="UI.inMenu(6)">6</button>
+                    <button class="k" onclick="UI.inMenu(1)">1</button><button class="k" onclick="UI.inMenu(2)">2</button><button class="k" onclick="UI.inMenu(3)">3</button>
+                    <button class="k small" onclick="UI.clearMenu()">CLR</button><button class="k" onclick="UI.inMenu(0)">0</button><button class="k green" onclick="UI.saveMenu()">OK</button>
+                </div>
+                <button class="k" style="flex:1; background:var(--syn-red)" onclick="UI.closeMenu()">STORNO</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+/**
+ * SYNERGY CORE OS v20.0
+ * Obsidian Industrial Framework
+ */
+
+const Core = {
+    state: {
+        booted: false, power: false, crashed: false, frozen: false,
+        bootTime: 180, // 3 Minutes
+        errorChance: 0.0004
+    },
+
+    power() {
+        if(this.state.power) { location.reload(); return; }
+        this.state.power = true;
+        this.boot();
+    },
+
+    async boot() {
+        const log = document.getElementById('boot-log');
+        const fill = document.getElementById('boot-fill');
+        const timer = document.getElementById('boot-clock');
+        document.getElementById('layer-boot').style.display = 'flex';
+
+        const lines = [
+            "Initializing Synergy ROM v20.0...", "CPU: OctaCore Industrial @ 3.6GHz", "RAM Check: 16384MB ECC... [OK]",
+            "NVMe: Healthy (99%)", "Mounting /dev/sda1 to /root...", "Kernel loading: 6.4.0-syn-obsidian",
+            "Loading HAL...", "Initializing GPIO pins...", "Check Thermal Sensor 0: 42°C", "Check Thermal Sensor 1: 39°C",
+            "Initializing LCD Driver...", "Touch Calibration initialized", "Scanning RS485 for Printer...",
+            "Printer Found: MIKRO-T v4.2", "GPS: Locked (12 satellites)", "LTE: Registered (Arriva-Net)",
+            "Initializing Encryption Vault...", "Verifying Signatures...", "Loading database: stops_v2026.db",
+            "Starting Wayland Compositor...", "Loading UI Asset Bundle...", "Checking for updates... [None]",
+            "System Integrity Check: 100%", "BlackBox Logger: Online", "Welcome, Driver."
+        ];
+
+        // Filler for 3 min boot
+        for(let i=0; i<300; i++) lines.splice(5+i, 0, `Verifying block 0x${Math.random().toString(16).substr(2,6).toUpperCase()}... [OK]`);
+
+        let elapsed = 0;
+        let step = this.state.bootTime / lines.length;
+
+        for(let i=0; i<lines.length; i++) {
+            const d = document.createElement('div');
+            d.innerText = `[${this.fmtTime(elapsed)}] ${lines[i]}`;
+            log.appendChild(d);
+            log.scrollTop = log.scrollHeight;
+            fill.style.width = ((i+1)/lines.length)*100 + "%";
+            await new Promise(r => setTimeout(r, step * 1000));
+            elapsed += step;
+            timer.innerText = this.fmtTime(elapsed);
+            if(this.state.crashed) return;
+        }
+
+        document.getElementById('layer-boot').style.display = 'none';
+        document.getElementById('layer-login').style.display = 'flex';
+        this.state.booted = true;
+    },
+
+    fmtTime(s) {
+        return Math.floor(s/60).toString().padStart(2,'0') + ":" + Math.floor(s%60).toString().padStart(2,'0');
+    },
+
+    triggerError(type) {
+        if(this.state.crashed) return;
+        Audio.play('alert');
+        switch(type) {
+            case 'bsod':
+                this.state.crashed = true;
+                document.getElementById('layer-bsod').style.display = 'block';
+                break;
+            case 'thermal':
+                document.getElementById('dlg-thermal').style.display = 'block';
+                break;
+            case 'storage':
+                document.getElementById('dlg-storage').style.display = 'block';
+                break;
+            case 'freeze':
+                this.state.frozen = true;
+                document.getElementById('layer-freeze').style.display = 'block';
+                // No message, just stops working
+                setTimeout(() => { document.body.style.background = "#000"; document.getElementById('viewport').style.opacity = "0"; }, 5000);
+                break;
+        }
+    }
+};
+
+const Data = {
+    line: "790968", spoj: "2", kurz: "101", carrier: "Arriva Morava",
+    stops: [
+        {n: "Ostrava,,ÚAN", t: "08:00"}, {n: "Ostrava,,Vítkovice", t: "08:15"},
+        {n: "Ostrava,,Hrabová", t: "08:25"}, {n: "Paskov,,střed", t: "08:35"},
+        {n: "Frýdek-Místek,,Riviéra", t: "08:45"}, {n: "Palkovice,,střed", t: "09:00"}
+    ],
+    idx: 0, price: 11, logBuf: "", appBuf: "", menuBuf: "", mTarget: 'line'
+};
+
+const UI = {
+    inLog(n) { Data.logBuf += n; this.updLog(); },
+    clearLog() { Data.logBuf = ""; this.updLog(); },
+    updLog() { document.getElementById('log-lcd').innerText = Data.logBuf || "ID?"; },
+    submitLog() {
+        if(Data.logBuf.length > 2) {
+            Audio.play('login');
+            document.getElementById('layer-login').style.display = 'none';
+            document.getElementById('layer-app').style.display = 'flex';
+            this.startApp();
+        }
+    },
+
+    startApp() {
+        this.renderIti();
+        this.updStatus();
+        setInterval(() => {
+            if(Core.state.crashed || Core.state.frozen) return;
+            document.getElementById('st-clock').innerText = new Date().toLocaleTimeString('cs-CZ');
+            if(Math.random() < Core.state.errorChance) {
+                const errs = ['thermal', 'storage', 'freeze', 'bsod'];
+                Core.triggerError(errs[Math.floor(Math.random()*errs.length)]);
+            }
+        }, 1000);
+    },
+
+    renderIti() {
+        const box = document.getElementById('iti-box');
+        box.innerHTML = "";
+        Data.stops.forEach((s, i) => {
+            const r = document.createElement('div');
+            r.className = `iti-row ${i === Data.idx ? 'active' : ''} ${i < Data.idx ? 'passed' : ''}`;
+            r.innerHTML = `<div>${s.t}</div><div style="opacity:0.3">25|</div><div>${s.n}</div><div style="text-align:right">Z:${100+i}</div>`;
+            box.appendChild(r);
+        });
+        const active = box.querySelector('.active');
+        if(active) active.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    },
+
+    next() {
+        if(Data.idx < Data.stops.length - 1) {
+            Data.idx++;
+            Audio.play('gong');
+            this.renderIti();
+        }
+    },
+
+    setPrice(btn, p) {
+        document.querySelectorAll('.t-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active'); Data.price = p;
+        document.getElementById('price-val').innerText = p.toFixed(2).replace('.', ',') + " Kč";
+    },
+
+    pay() { Audio.play('pay'); alert("TISK JÍZDENKY..."); },
+
+    openMenu() { document.getElementById('layer-menu').style.display = 'flex'; this.renderEdit(); },
+    closeMenu() { document.getElementById('layer-menu').style.display = 'none'; },
+
+    setMTarget(t) {
+        Data.mTarget = t;
+        document.querySelectorAll('.m-box').forEach(b => b.classList.remove('active'));
+        document.getElementById('mb-'+t).classList.add('active');
+        Data.menuBuf = "";
+    },
+
+    inMenu(n) {
+        const el = document.getElementById('v-'+Data.mTarget);
+        if(Data.menuBuf === "") el.innerText = "";
+        Data.menuBuf += n; el.innerText = Data.menuBuf;
+    },
+
+    clearMenu() { Data.menuBuf = ""; document.getElementById('v-'+Data.mTarget).innerText = "0"; },
+
+    renderEdit() {
+        const box = document.getElementById('edit-box'); box.innerHTML = "";
+        Data.stops.forEach((s, i) => {
+            box.innerHTML += `<div class="edit-stop-row">
+                <input type="text" value="${s.n}" onchange="Data.stops[${i}].n=this.value">
+                <input type="text" value="${s.t}" onchange="Data.stops[${i}].t=this.value">
+                <button class="k" style="height:28px; background:red" onclick="Data.stops.splice(${i},1);UI.renderEdit()">X</button>
+            </div>`;
+        });
+    },
+
+    addS() { Data.stops.push({n:"Nová", t:"10:00"}); this.renderEdit(); },
+
+    saveMenu() {
+        Data.line = document.getElementById('v-line').innerText;
+        Data.spoj = document.getElementById('v-spoj').innerText;
+        Data.kurz = document.getElementById('v-kurz').innerText;
+        Data.carrier = document.getElementById('v-carrier').value;
+        this.updStatus(); this.renderIti(); this.closeMenu();
+        Audio.play('pay');
+    },
+
+    updStatus() {
+        document.getElementById('st-ids').innerText = `${Data.line} / ${Data.spoj}`;
+        document.getElementById('st-kurz').innerText = `K: ${Data.kurz}`;
+    },
+
+    inApp(n) {}
+};
+
+const Audio = {
+    ctx: new (window.AudioContext || window.webkitAudioContext)(),
+    play(type) {
+        const o = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        o.connect(g); g.connect(this.ctx.destination);
+        g.gain.setValueAtTime(0.1, this.ctx.currentTime);
+        
+        if(type === 'login') { o.frequency.value = 1000; o.start(); o.stop(this.ctx.currentTime+0.1); }
+        if(type === 'pay') { o.frequency.value = 1500; o.start(); o.stop(this.ctx.currentTime+0.2); }
+        if(type === 'gong') { o.frequency.value = 400; o.type = 'triangle'; o.start(); o.stop(this.ctx.currentTime+0.4); 
+            const o2 = this.ctx.createOscillator(); o2.connect(g); o2.frequency.value = 300; o2.type='triangle'; o2.start(this.ctx.currentTime+0.3); o2.stop(this.ctx.currentTime+0.7); }
+        if(type === 'alert') { o.frequency.value = 2000; o.start(); o.stop(this.ctx.currentTime+0.5); }
+    }
+};
+
+</script>
+</body>
+</html>
