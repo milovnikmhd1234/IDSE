@@ -18,17 +18,11 @@
             font-family: 'Segoe UI', sans-serif;
             background-color: var(--bg);
             color: var(--text);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            margin: 0; padding: 20px;
+            display: flex; flex-direction: column; align-items: center;
         }
 
-        .container {
-            width: 100%;
-            max-width: 800px;
-        }
+        .container { width: 100%; max-width: 900px; }
 
         header {
             text-align: center;
@@ -41,160 +35,173 @@
             color: var(--accent);
             text-decoration: none;
             font-size: 0.9rem;
-            display: block;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            display: inline-block;
         }
 
-        /* --- PŘEPÍNAČ LINEK --- */
         .line-selector {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-bottom: 30px;
+            display: flex; gap: 10px;
+            justify-content: center; margin-bottom: 30px;
         }
 
         .line-btn {
             background: var(--card-bg);
             border: 2px solid var(--line-color);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.3s;
+            color: white; padding: 12px 25px;
+            border-radius: 8px; cursor: pointer;
+            font-weight: bold; transition: 0.3s;
         }
 
-        .line-btn:hover { border-color: var(--accent); }
         .line-btn.active {
-            background: var(--accent);
-            color: black;
-            border-color: var(--accent);
+            background: var(--accent); color: black; border-color: var(--accent);
         }
 
-        /* --- SCHÉMA LINKY --- */
         .route-card {
             background: var(--card-bg);
-            border-radius: 12px;
-            padding: 25px;
-            display: none; /* Skryté, dokud se nevybere linka */
+            border-radius: 12px; padding: 25px;
+            display: none;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
         .route-card.active { display: block; }
 
-        h2 { color: var(--accent); margin-top: 0; }
+        .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
 
-        .stop-list {
-            list-style: none;
-            padding: 0;
-            position: relative;
+        @media (max-width: 600px) { .columns { grid-template-columns: 1fr; } }
+
+        .direction-title {
+            background: #222; padding: 10px;
+            border-radius: 5px; margin: 20px 0 15px 0;
+            font-size: 0.8rem; text-transform: uppercase;
+            border-left: 4px solid var(--accent);
         }
 
         .stop-item {
-            display: flex;
-            align-items: center;
-            padding: 10px 0;
-            border-left: 4px solid var(--primary);
-            margin-left: 20px;
-            padding-left: 20px;
+            display: flex; align-items: center;
+            padding: 8px 0; border-left: 2px solid var(--primary);
+            margin-left: 15px; padding-left: 15px;
             position: relative;
         }
 
         .stop-item::before {
-            content: "";
-            position: absolute;
-            left: -10px;
-            width: 16px;
-            height: 16px;
-            background: var(--accent);
-            border-radius: 50%;
+            content: ""; position: absolute; left: -7px;
+            width: 12px; height: 12px;
+            background: var(--accent); border-radius: 50%;
         }
 
-        .stop-name { flex: 1; font-weight: 500; }
-        .stop-time { color: var(--accent); font-family: monospace; font-size: 1.1rem; }
-        .stop-diff { font-size: 0.8rem; opacity: 0.5; margin-left: 10px; }
-
-        .direction-title {
-            background: #222;
-            padding: 10px;
-            border-radius: 5px;
-            margin: 20px 0 10px 0;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+        .stop-name { flex: 1; font-size: 0.95rem; }
+        .stop-time { color: var(--accent); font-family: monospace; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <a href="index.html" class="back-link">← ZPĚT DO TERMINÁLU</a>
+        <a href="https://milovnikmhd1234.github.io/IDSE/" class="back-link">← ZPĚT DO TERMINÁLU</a>
         <header>
             <h1>MHD PRAHA 4 A OKOLÍ</h1>
-            <p>Informační systém linek IDSE</p>
+            <p>Informační systém linek IDSE | Provozní stav: AKTIVNÍ</p>
         </header>
 
         <div class="line-selector">
-            <button class="line-btn" onclick="showLine('123')">123</button>
+            <button class="line-btn" onclick="showLine('124')">124</button>
             <button class="line-btn" onclick="showLine('134')">134</button>
             <button class="line-btn" onclick="showLine('188')">188</button>
             <button class="line-btn" onclick="showLine('106')">106</button>
         </div>
 
-        <div id="line-123" class="route-card">
-            <h2>Linka 123: Zelený pruh ↔ Budějovická</h2>
-            
-            <div class="direction-title">Směr Budějovická</div>
-            <div class="stop-list">
-                <div class="stop-item"><span class="stop-name">Zelený pruh</span><span class="stop-time">0'</span></div>
-                <div class="stop-item"><span class="stop-name">Na planině</span><span class="stop-diff">+1</span><span class="stop-time">1'</span></div>
-                <div class="stop-item"><span class="stop-name">Ryšánka</span><span class="stop-diff">+3</span><span class="stop-time">4'</span></div>
-                <div class="stop-item"><span class="stop-name">Antala Staška</span><span class="stop-diff">+2</span><span class="stop-time">6'</span></div>
-                <div class="stop-item"><span class="stop-name">Poliklinika Budějovická</span><span class="stop-diff">+2</span><span class="stop-time">8'</span></div>
-                <div class="stop-item"><span class="stop-name">Budějovická</span><span class="stop-diff">+2</span><span class="stop-time">10'</span></div>
-            </div>
-
-            <div class="direction-title">Směr Zelený pruh</div>
-            <div class="stop-list">
-                <div class="stop-item"><span class="stop-name">Budějovická</span><span class="stop-time">0'</span></div>
-                <div class="stop-item"><span class="stop-name">Poliklinika Budějovická</span><span class="stop-diff">+2</span><span class="stop-time">2'</span></div>
-                <div class="stop-item"><span class="stop-name">Antala Staška</span><span class="stop-diff">+2</span><span class="stop-time">4'</span></div>
-                <div class="stop-item"><span class="stop-name">Ryšánka</span><span class="stop-diff">+3</span><span class="stop-time">7'</span></div>
-                <div class="stop-item"><span class="stop-name">Na planině</span><span class="stop-diff">+2</span><span class="stop-time">9'</span></div>
-                <div class="stop-item"><span class="stop-name">Zelený pruh</span><span class="stop-diff">+1</span><span class="stop-time">10'</span></div>
+        <!-- LINKA 124 (původní 123) -->
+        <div id="line-124" class="route-card">
+            <h2>Linka 124: Zelený pruh ↔ Budějovická</h2>
+            <div class="columns">
+                <div>
+                    <div class="direction-title">Směr Budějovická</div>
+                    <div class="stop-item"><span class="stop-name">Zelený pruh</span><span class="stop-time">0'</span></div>
+                    <div class="stop-item"><span class="stop-name">Na planině</span><span class="stop-time">1'</span></div>
+                    <div class="stop-item"><span class="stop-name">Ryšánka</span><span class="stop-time">4'</span></div>
+                    <div class="stop-item"><span class="stop-name">Antala Staška</span><span class="stop-time">6'</span></div>
+                    <div class="stop-item"><span class="stop-name">Poliklinika Budějovická</span><span class="stop-time">8'</span></div>
+                    <div class="stop-item"><span class="stop-name">Budějovická</span><span class="stop-time">10'</span></div>
+                </div>
+                <div>
+                    <div class="direction-title">Směr Zelený pruh</div>
+                    <div class="stop-item"><span class="stop-name">Budějovická</span><span class="stop-time">0'</span></div>
+                    <div class="stop-item"><span class="stop-name">Poliklinika Budějovická</span><span class="stop-time">2'</span></div>
+                    <div class="stop-item"><span class="stop-name">Antala Staška</span><span class="stop-time">4'</span></div>
+                    <div class="stop-item"><span class="stop-name">Ryšánka</span><span class="stop-time">7'</span></div>
+                    <div class="stop-item"><span class="stop-name">Na Planině</span><span class="stop-time">9'</span></div>
+                    <div class="stop-item"><span class="stop-name">Zelený pruh</span><span class="stop-time">10'</span></div>
+                </div>
             </div>
         </div>
 
+        <!-- LINKA 134 -->
         <div id="line-134" class="route-card">
             <h2>Linka 134: Zelený pruh ↔ Kavčí hory</h2>
-            <div class="direction-title">Směr Kavčí hory</div>
-            <div class="stop-list">
-                <div class="stop-item"><span class="stop-name">Zelený pruh</span><span class="stop-time">0'</span></div>
-                <div class="stop-item"><span class="stop-name">... (přes Budějovickou)</span><span class="stop-time">10'</span></div>
-                <div class="stop-item"><span class="stop-name">Zelená liška</span><span class="stop-diff">+2</span><span class="stop-time">12'</span></div>
-                <div class="stop-item"><span class="stop-name">Pankrác</span><span class="stop-diff">+3</span><span class="stop-time">15'</span></div>
-                <div class="stop-item"><span class="stop-name">Sídliště Pankrác</span><span class="stop-diff">+2</span><span class="stop-time">17'</span></div>
-                <div class="stop-item"><span class="stop-name">Kavčí hory</span><span class="stop-diff">+2</span><span class="stop-time">19'</span></div>
-            </div>
-            </div>
-
-        <div id="line-188" class="route-card">
-            <h2>Linka 188: Kavčí hory ↔ Pankrác</h2>
-            <div class="direction-title">Obrat přes Sídliště Pankrác</div>
-            <div class="stop-list">
-                <div class="stop-item"><span class="stop-name">Kavčí hory</span><span class="stop-time">0'</span></div>
-                <div class="stop-item"><span class="stop-name">Sídliště Pankrác</span><span class="stop-diff">+2</span><span class="stop-time">2'</span></div>
-                <div class="stop-item"><span class="stop-name">Pankrác</span><span class="stop-diff">+2</span><span class="stop-time">4'</span></div>
+            <div class="columns">
+                <div>
+                    <div class="direction-title">Směr Kavčí hory</div>
+                    <div class="stop-item"><span class="stop-name">Zelený pruh</span><span class="stop-time">0'</span></div>
+                    <div class="stop-item"><span class="stop-name">Na planině</span><span class="stop-time">1'</span></div>
+                    <div class="stop-item"><span class="stop-name">Ryšánka</span><span class="stop-time">4'</span></div>
+                    <div class="stop-item"><span class="stop-name">Antala Staška</span><span class="stop-time">6'</span></div>
+                    <div class="stop-item"><span class="stop-name">Poliklinika Budějovická</span><span class="stop-time">8'</span></div>
+                    <div class="stop-item"><span class="stop-name">Budějovická</span><span class="stop-time">10'</span></div>
+                    <div class="stop-item"><span class="stop-name">Zelená liška</span><span class="stop-time">12'</span></div>
+                    <div class="stop-item"><span class="stop-name">Pankrác</span><span class="stop-time">15'</span></div>
+                    <div class="stop-item"><span class="stop-name">Sídliště Pankrác</span><span class="stop-time">17'</span></div>
+                    <div class="stop-item"><span class="stop-name">Kavčí hory</span><span class="stop-time">19'</span></div>
+                </div>
+                <div>
+                    <div class="direction-title">Směr Zelený pruh</div>
+                    <div class="stop-item"><span class="stop-name">Kavčí hory</span><span class="stop-time">0'</span></div>
+                    <div class="stop-item"><span class="stop-name">Sídliště Pankrác</span><span class="stop-time">2'</span></div>
+                    <div class="stop-item"><span class="stop-name">Pankrác</span><span class="stop-time">4'</span></div>
+                    <div class="stop-item"><span class="stop-name">Zelená liška</span><span class="stop-time">7'</span></div>
+                    <div class="stop-item"><span class="stop-name">Budějovická</span><span class="stop-time">9'</span></div>
+                    <div class="stop-item"><span class="stop-name">Poliklinika Budějovická</span><span class="stop-time">11'</span></div>
+                    <div class="stop-item"><span class="stop-name">Antala Staška</span><span class="stop-time">13'</span></div>
+                    <div class="stop-item"><span class="stop-name">Ryšánka</span><span class="stop-time">16'</span></div>
+                    <div class="stop-item"><span class="stop-name">Na Planině</span><span class="stop-time">18'</span></div>
+                    <div class="stop-item"><span class="stop-name">Zelený pruh</span><span class="stop-time">19'</span></div>
+                </div>
             </div>
         </div>
 
+        <!-- LINKA 188 -->
+        <div id="line-188" class="route-card">
+            <h2>Linka 188: Kavčí hory ↔ Pankrác</h2>
+            <div class="columns">
+                <div>
+                    <div class="direction-title">Směr Pankrác</div>
+                    <div class="stop-item"><span class="stop-name">Kavčí hory</span><span class="stop-time">0'</span></div>
+                    <div class="stop-item"><span class="stop-name">Sídliště Pankrác</span><span class="stop-time">2'</span></div>
+                    <div class="stop-item"><span class="stop-name">Pankrác</span><span class="stop-time">4'</span></div>
+                </div>
+                <div>
+                    <div class="direction-title">Směr Kavčí hory</div>
+                    <div class="stop-item"><span class="stop-name">Pankrác</span><span class="stop-time">0'</span></div>
+                    <div class="stop-item"><span class="stop-name">Sídliště Pankrác</span><span class="stop-time">2'</span></div>
+                    <div class="stop-item"><span class="stop-name">Kavčí hory</span><span class="stop-time">4'</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LINKA 106 -->
         <div id="line-106" class="route-card">
             <h2>Linka 106: Pankrác ↔ Krčský Hřbitov</h2>
-            <div class="direction-title">Obousměrný provoz</div>
-            <div class="stop-list">
-                <div class="stop-item"><span class="stop-name">Pankrác</span><span class="stop-time">0'</span></div>
-                <div class="stop-item"><span class="stop-name">Sídliště Pankrác</span><span class="stop-diff">+2</span><span class="stop-time">2'</span></div>
-                <div class="stop-item"><span class="stop-name">Krčský Hřbitov</span><span class="stop-diff">+3</span><span class="stop-time">5'</span></div>
+            <div class="columns">
+                <div>
+                    <div class="direction-title">Směr Krčský Hřbitov</div>
+                    <div class="stop-item"><span class="stop-name">Pankrác</span><span class="stop-time">0'</span></div>
+                    <div class="stop-item"><span class="stop-name">Sídliště Pankrác</span><span class="stop-time">2'</span></div>
+                    <div class="stop-item"><span class="stop-name">Krčský Hřbitov</span><span class="stop-time">5'</span></div>
+                </div>
+                <div>
+                    <div class="direction-title">Směr Pankrác</div>
+                    <div class="stop-item"><span class="stop-name">Krčský Hřbitov</span><span class="stop-time">0'</span></div>
+                    <div class="stop-item"><span class="stop-name">Sídliště Pankrác</span><span class="stop-time">2'</span></div>
+                    <div class="stop-item"><span class="stop-name">Pankrác</span><span class="stop-time">4'</span></div>
+                </div>
             </div>
         </div>
 
@@ -202,24 +209,14 @@
 
     <script>
         function showLine(lineNum) {
-            // Skrýt všechny karty
-            document.querySelectorAll('.route-card').forEach(card => {
-                card.classList.remove('active');
-            });
-            // Deaktivovat všechna tlačítka
-            document.querySelectorAll('.line-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-
-            // Zobrazit vybranou
-            document.getElementById('line-' + lineNum).classList.add('active');
+            document.querySelectorAll('.route-card').forEach(card => card.classList.remove('active'));
+            document.querySelectorAll('.line-btn').forEach(btn => btn.classList.remove('active'));
             
-            // Aktivovat tlačítko (najde ho podle textu)
+            document.getElementById('line-' + lineNum).classList.add('active');
             event.currentTarget.classList.add('active');
         }
-
-        // Defaultně zobrazit první linku
-        showLine('123');
+        // Výchozí zobrazení
+        showLine('124');
     </script>
 </body>
 </html>
