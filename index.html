@@ -3,329 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IDSE - Centrální Terminál</title>
+    <title>IDSE - Integrovaná Doprava Simtova a Evropy</title>
     <style>
         :root {
             --primary: #0055a4;
             --accent: #ffcc00;
-            --bg: #0f0f11;
-            --card-bg: #1a1a1d;
-            --text: #e0e0e0;
+            --bg: #0a0a0c;
+            --card-bg: #161618;
+            --text: #ffffff;
         }
 
         body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
+            margin: 0; padding: 0; height: 100%;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg);
             color: var(--text);
             overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        /* --- BOOT SCREEN --- */
-        #boot-container {
-            text-align: center;
-            z-index: 100;
-        }
-
-        .power-btn {
-            font-size: 90px;
-            cursor: pointer;
-            background: none;
-            border: none;
-            filter: drop-shadow(0 0 15px rgba(255,255,255,0.2));
-            transition: all 0.3s ease;
-            user-select: none;
-        }
-
-        .power-btn:hover {
-            transform: scale(1.1);
-            filter: drop-shadow(0 0 25px var(--accent));
-        }
-
-        #loading-screen {
-            display: none;
-            width: 350px;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: #2d2d2d;
-            border-radius: 10px;
-            margin-top: 25px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            width: 0%;
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
-            box-shadow: 0 0 15px var(--primary);
-            transition: width 1s linear;
-        }
-
-        #timer {
-            font-weight: bold;
-            color: var(--accent);
-            font-size: 1.2rem;
-            margin-top: 10px;
-        }
-
-        #boot-status {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 0.85rem;
-            opacity: 0.7;
-            height: 20px;
         }
 
         /* --- HLAVNÍ DASHBOARD --- */
-        #main-content {
-            display: none;
-            width: 100%;
-            height: 100%;
+        #main-gui {
+            display: flex;
+            height: 100vh;
             flex-direction: column;
-            opacity: 0;
-            transition: opacity 1.5s ease-in;
         }
 
         header {
+            background: var(--primary);
             padding: 15px 30px;
-            background: #16161a;
-            border-bottom: 2px solid var(--primary);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+            border-bottom: 4px solid var(--accent);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
         }
 
-        .logo-area h1 {
-            margin: 0;
-            font-size: 1.5rem;
-            letter-spacing: 1px;
-            color: #fff;
-        }
+        #clock { font-size: 1.8rem; font-weight: bold; }
+        #date { font-size: 0.9rem; opacity: 0.8; text-align: right; }
 
-        .logo-area span {
-            color: var(--accent);
-            font-size: 0.8rem;
-            text-transform: uppercase;
-        }
-
-        .clock-container {
-            text-align: right;
-            border-left: 2px solid #333;
-            padding-left: 20px;
-        }
-
-        #clock { font-size: 1.6rem; font-weight: bold; color: var(--accent); }
-        #date { font-size: 0.85rem; opacity: 0.7; }
-
-        .dashboard {
-            flex-grow: 1;
+        .dashboard-grid {
+            flex: 1;
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
+            gap: 20px;
             padding: 40px;
             overflow-y: auto;
-            background-image: radial-gradient(circle at center, #1a1a1d 0%, #0f0f11 100%);
         }
 
-        .link-card {
+        .link-button {
             background: var(--card-bg);
             border: 1px solid #333;
-            padding: 30px;
-            text-decoration: none;
             color: white;
+            text-decoration: none;
+            padding: 30px;
             border-radius: 12px;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center;
+            transition: all 0.3s ease;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
 
-        .link-card::before {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 4px;
-            background: var(--primary);
-            transition: background 0.3s;
-        }
-
-        .link-card:hover {
-            background: #252529;
-            transform: translateY(-8px);
+        .link-button:hover {
+            background: #202022;
             border-color: var(--accent);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.5);
         }
 
-        .link-card:hover::before { background: var(--accent); }
-
-        .link-card h3 { margin: 15px 0 10px 0; font-size: 1.3rem; }
-        .link-card p { margin: 0; font-size: 0.9rem; opacity: 0.6; line-height: 1.4; }
+        .link-button h2 { margin: 0 0 10px 0; color: var(--accent); font-size: 1.4rem; }
+        .link-button p { margin: 0; opacity: 0.6; font-size: 0.9rem; }
 
         .footer {
             padding: 10px;
             text-align: center;
-            font-size: 0.75rem;
-            background: #0a0a0a;
-            color: #555;
+            font-size: 0.8rem;
+            background: #000;
+            color: #444;
         }
     </style>
 </head>
 <body>
 
-    <!-- BOOT SEKVENCE -->
-    <div id="boot-container">
-        <div id="start-prompt">
-            <button class="power-btn" onclick="startBoot()">🫆</button>
-            <p style="margin-top:20px; opacity: 0.6;">SPOUŠTĚCÍ SYSTÉM IDSE</p>
-        </div>
-
-        <div id="loading-screen">
-            <h2 style="color: var(--primary);">NAČÍTÁNÍ SYSTÉMU</h2>
-            <div class="progress-bar"><div class="progress-fill" id="fill"></div></div>
-            <div id="timer">30s</div>
-            <p id="boot-status">Inicializace...</p>
-        </div>
-    </div>
-
-    <!-- HLAVNÍ OBSAH -->
-    <div id="main-content">
+    <div id="main-gui">
         <header>
-            <div class="logo-area">
-                <h1>IDSE <span>Integrovaná Doprava Simtova a Evropy</span></h1>
+            <div>
+                <h1 style="margin:0; font-size: 1.5rem; letter-spacing: 1px;">IDSE | OCC TERMINAL</h1>
+                <small style="color: var(--accent);">ROBLOX A SIMT SPOLEČNOST</small>
             </div>
-            <div class="clock-container">
+            <div>
                 <div id="clock">00:00:00</div>
                 <div id="date">Načítání...</div>
             </div>
         </header>
 
-        <div class="dashboard">
-            <a href="https://milovnikmhd1234.github.io/IDSE/" target="_blank" class="link-card">
-                <h3>Train Sim</h3>
-                <p>Vstup do hlavního simulátoru a herního rozhraní.</p>
+        <div class="dashboard-grid">
+            
+            <a href="https://milovnikmhd1234.github.io/IDSE/" class="link-button">
+                <h2>Train Sim</h2>
+                <p>Domovský portál a rozhraní</p>
             </a>
-            <a href="https://milovnikmhd1234.github.io/IDSE/Praha4" target="_blank" class="link-card">
-                <h3>Praha 4</h3>
-                <p>Správa linek, mapy a grafikonu oblasti Praha 4.</p>
+
+            <a href="https://milovnikmhd1234.github.io/IDSE/Praha4" class="link-button">
+                <h2>Praha 4</h2>
+                <p>Mapy a linkové vedení (Simtov)</p>
             </a>
-            <a href="https://milovnikmhd1234.github.io/IDSE/CBS1" target="_blank" class="link-card">
-                <h3>CBS 1</h3>
-                <p>Centrální odbavovací systém - Primární uzel.</p>
+
+            <a href="https://milovnikmhd1234.github.io/IDSE/CBS1" class="link-button">
+                <h2>CBS 1</h2>
+                <p>Centrální odbavovací systém 1</p>
             </a>
-            <a href="https://milovnikmhd1234.github.io/IDSE/CBS2" target="_blank" class="link-card">
-                <h3>CBS 2</h3>
-                <p>Centrální odbavovací systém - Sekundární uzel.</p>
+
+            <a href="https://milovnikmhd1234.github.io/IDSE/CBS2" class="link-button">
+                <h2>CBS 2</h2>
+                <p>Centrální odbavovací systém 2</p>
             </a>
-            <a href="https://milovnikmhd1234.github.io/IDSE/SYNERGY" target="_blank" class="link-card">
-                <h3>SynergyOCC</h3>
-                <p>Operační řídící centrum a monitoring sítě.</p>
+
+            <a href="https://milovnikmhd1234.github.io/IDSE/SYNERGY" class="link-button">
+                <h2>SynergyOCC</h2>
+                <p>Řídící centrum a monitoring</p>
             </a>
-            <a href="https://milovnikmhd1234.github.io/IDSE/links" target="_blank" class="link-card">
-                <h3>Odkazy</h3>
-                <p>Užitečné externí zdroje, Discord a dokumentace.</p>
+
+            <a href="https://milovnikmhd1234.github.io/IDSE/links" class="link-button">
+                <h2>Odkazy</h2>
+                <p>Dokumentace a externí zdroje</p>
             </a>
         </div>
 
         <div class="footer">
-            IDSE NETWORK &copy; 2026 | OPERATIONAL CONTROL CENTER
+            OPERATIONAL CONTROL CENTER | IDSE OS v2.6.0 | SYSTÉM AKTIVNÍ
         </div>
     </div>
 
     <script>
-        // --- LOGIKA HODIN ---
+        // --- HODINY A DATUM ---
         function updateClock() {
             const now = new Date();
-            const timeStr = now.toLocaleTimeString('cs-CZ');
-            const dateStr = now.toLocaleDateString('cs-CZ', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            
-            document.getElementById('clock').textContent = timeStr;
-            document.getElementById('date').textContent = dateStr;
+            document.getElementById('clock').textContent = now.toLocaleTimeString('cs-CZ');
+            document.getElementById('date').textContent = now.toLocaleDateString('cs-CZ', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
         }
         setInterval(updateClock, 1000);
         updateClock();
-
-        // --- LOGIKA BOOTOVÁNÍ ---
-        const bootContainer = document.getElementById('boot-container');
-        const mainContent = document.getElementById('main-content');
-
-        // Kontrola, zda uživatel už v této relaci nabootoval
-        window.onload = function() {
-            if (sessionStorage.getItem('isBooted') === 'true') {
-                skipBoot();
-            }
-        };
-
-        function startBoot() {
-            document.getElementById('start-prompt').style.display = 'none';
-            document.getElementById('loading-screen').style.display = 'block';
-            
-            let timeLeft = 30;
-            const progressFill = document.getElementById('fill');
-            const timerText = document.getElementById('timer');
-            const statusText = document.getElementById('boot-status');
-
-            const statusMessages = [
-                "Zavádění jádra systému...",
-                "Navazování zabezpečeného spojení...",
-                "Načítání databáze Simtova...",
-                "Synchronizace s IDSE Cloud...",
-                "Konfigurace uživatelského GUI...",
-                "Vítejte, operátore."
-            ];
-
-            const interval = setInterval(() => {
-                timeLeft--;
-                timerText.textContent = timeLeft + "s";
-                
-                let progress = ((30 - timeLeft) / 30) * 100;
-                progressFill.style.width = progress + "%";
-
-                // Měnění textů
-                if (timeLeft > 25) statusText.textContent = statusMessages[0];
-                else if (timeLeft > 20) statusText.textContent = statusMessages[1];
-                else if (timeLeft > 15) statusText.textContent = statusMessages[2];
-                else if (timeLeft > 10) statusText.textContent = statusMessages[3];
-                else if (timeLeft > 5) statusText.textContent = statusMessages[4];
-                else statusText.textContent = statusMessages[5];
-
-                if (timeLeft <= 0) {
-                    clearInterval(interval);
-                    finalizeBoot();
-                }
-            }, 1000);
-        }
-
-        function finalizeBoot() {
-            sessionStorage.setItem('isBooted', 'true'); // Uloží informaci o zapnutí
-            showDashboard();
-        }
-
-        function skipBoot() {
-            bootContainer.style.display = 'none';
-            mainContent.style.display = 'flex';
-            mainContent.style.opacity = '1';
-        }
-
-        function showDashboard() {
-            bootContainer.style.opacity = '0';
-            setTimeout(() => {
-                bootContainer.style.display = 'none';
-                mainContent.style.display = 'flex';
-                setTimeout(() => {
-                    mainContent.style.opacity = '1';
-                }, 50);
-            }, 800);
-        }
     </script>
 </body>
 </html>
